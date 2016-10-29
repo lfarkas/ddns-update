@@ -1,0 +1,26 @@
+#!/sbin/runscript
+description="ddns-update Daemon for Alpine"
+command="/usr/bin/ddns-update"
+config_file="/etc/ddns-update/ddns-update.conf"
+command_args=""
+
+depend() {
+    use logger
+    need net
+    after firewall
+}
+
+start() {
+    ebegin "Starting ddns-update"
+    start-stop-daemon --start \
+        --exec "${command}" \
+        -- \
+        ${command_args}
+    eend $?
+}
+
+stop() {
+    ebegin "Stopping ddns-update"
+    start-stop-daemon --stop --exec "${command}"
+    eend $?
+}

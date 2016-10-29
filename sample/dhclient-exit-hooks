@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# The /etc/dhcp/dhclient-exit-hooks and it will run by the ISC DHCP client's 
+# standard update script whenever dhclient obtains or renews an address
+# (address put in the $new_ip_address variable).
+# Add this line to that file or copy there.
+
+/usr/bin/ddns-update >/dev/null 2>&1

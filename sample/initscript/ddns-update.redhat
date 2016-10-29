@@ -1,0 +1,41 @@
+#!/bin/sh
+#
+# ddns-update      This shell script takes care of starting and stopping
+#               ddns-update.
+#
+# chkconfig: 2345 65 35
+# description: ddns-update provides support for updating dynamic DNS services.
+
+[ -f /etc/ddns-update/ddns-update.conf ] || exit 0
+
+. /etc/rc.d/init.d/functions
+
+# See how we were called.
+case "$1" in
+  start)
+	# Start daemon.
+	echo -n "Starting ddns-update: "
+	touch /var/lock/subsys/ddns-update
+	daemon ddns-update
+	echo    
+	;;
+  stop)
+	# Stop daemon.
+	echo -n "Shutting down ddns-update: "
+	killproc ddns-update
+	echo
+	rm -f /var/lock/subsys/ddns-update
+	;;
+  restart)
+	$0 stop
+	$0 start
+	;;
+  status)
+	status ddns-update
+	;;
+  *)
+	echo "Usage: ddns-update {start|stop|restart|status}"
+	exit 1
+esac
+
+exit 0

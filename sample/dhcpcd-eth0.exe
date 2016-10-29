@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# if you use dhcpcd put into /etc/dhcpc/dhcpcd-{your-interface}.exe
+
+/usr/bin/ddns-update >/dev/null 2>&1
