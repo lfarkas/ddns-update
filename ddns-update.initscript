@@ -1,0 +1,85 @@
+#!/bin/bash
+#
+# ddns-update Client to update dynamic DNS host entries
+#
+# chkconfig: - 65 35
+# description: ddns-update is used to update dynamic DNS entries.
+# processname: /usr/bin/ddns-update
+# config: /etc/ddns-update/ddns-update.conf
+# pidfile: /var/run/ddns-update/ddns-update.pid
+
+### BEGIN INIT INFO
+# Provides: ddns-update
+# Required-Start: $local_fs $network $syslog
+# Required-Stop: $local_fs $network $syslog
+# Should-Start: $named
+# Should-Stop: $named
+# Short-Description: Client to update dynamic DNS host entries
+# Description: ddns-update is used to update dynamic DNS entries
+### END INIT INFO
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+exec=/usr/bin/ddns-update
+prog=`basename $exec`
+lockfile=/var/lock/subsys/$prog
+pid=/var/run/ddns-update/ddns-update.pid
+RETVAL=0
+
+start() {
+	# Check that networking is up.
+	[ ! -f /var/lock/subsys/network -a ! -f /var/lock/subsys/NetworkManager ] && exit 0
+
+	echo -n $"Starting $prog: "
+	[ -f $cache ] || touch $cache
+	chown ddns-update:ddns-update $cache && chmod 600 $cache || exit $?
+	daemon --user=ddns-update --pidfile=$pid $exec
+	RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && touch $lockfile
+
+	return $RETVAL
+}
+
+stop() {
+	echo -n $"Stopping $prog: "
+	killproc -p $pid $prog
+	RETVAL=$?
+	echo
+	[ $RETVAL -eq 0 ] && rm -f $lockfile
+
+	return $RETVAL
+}
+
+restart() {
+	stop
+	start
+}
+
+# See how we were called.
+case "$1" in
+    start)
+	start
+	;;
+    stop)
+	stop
+	;;
+    status)
+	status -p $pid $prog
+	;;
+    restart|force-reload|reload)
+	restart
+	;;
+    condrestart|try-restart)
+	if [ -f $lockfile ]; then
+	    restart
+	fi
+	;;
+    *)
+	echo $"Usage: $0 {start|stop|status|reload|restart|condrestart|force-reload|try-restart}"
+	RETVAL=1
+	;;
+esac
+
+exit $RETVAL

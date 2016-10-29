@@ -1,0 +1,14 @@
+[Unit]
+Description=Dynamic DNS updater service
+After=syslog.target network.target nss-lookup.target
+
+[Service]
+User=ddns-update
+Group=ddns-update
+Type=forking
+PIDFile=/var/run/ddns-update/ddns-update.pid
+EnvironmentFile=-/etc/ddns-update/ddns-update.conf
+ExecStart=/usr/bin/ddns-update
+
+[Install]
+WantedBy=multi-user.target

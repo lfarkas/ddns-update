@@ -1,0 +1,15 @@
+#!/bin/sh
+
+export LC_ALL=C
+
+if [ "$2" = "down" ]; then
+	/sbin/ip route ls | grep -q '^default' || {
+		[ -f /var/run/ddns-update/ddns-update.pid ] && /usr/bin/systemctl stop ddns-update.service || :
+	} && { :; }
+fi
+
+if [ "$2" = "up" ]; then
+	/sbin/ip -o route show dev "$1" | grep -q '^default' && {
+		/usr/bin/systemctl start ddns-update.service || :
+	} || { :; }
+fi

@@ -1,0 +1,100 @@
+#!/bin/bash
+
+set -e
+
+source /etc/ddns/ddns.conf
+
+if [ "$1" != "-v" ]; then
+	[ -n "$LOGFILE" ] || LOGGER_OPT="-f $LOGFILE"
+	exec 1> >(logger -t ddns $LOGGER_OPT) 2>&1
+#	if [ "$SELF_LOGGING" != "1" ]; then
+#		SELF_LOGGING=1 sh $0 $* | logger -t ddns $LOGGER_OPT &
+#		PID=$!
+#		wait $PID
+#		exit $?
+#	fi
+fi
+
+[ -n "$EXTERNAL" ] || EXTERNAL=true
+[ -n "IF" ] && OUT_IF=$IF || IF=eth0
+# other implementation can be
+# HOST=$(expr `cat /proc/sys/kernel/hostname` : '\([^.][^.]*\)\..*')
+# HOST=$(sed  's/\..*//' < /proc/sys/kernel/hostname)
+# ZONE=$(expr `cat /proc/sys/kernel/hostname` : '[^.][^.]*\.\(.*\)')
+# ZONE=$(sed -n 's/[^.]*\.//p' < /proc/sys/kernel/hostname)
+[ -n "$HOST" ]   || HOST=`cut -d. -f1 < /proc/sys/kernel/hostname`
+[ -n "$ZONE" ]   || ZONE=`cut -d. -f2- < /proc/sys/kernel/hostname`
+[ -n "$SERVER" ] || SERVER=`dig +short soa $ZONE|cut -d" " -f1`
+[ -n "$TTL" ]    || TTL=600
+[ -n "$KEY" ]    || KEY="/etc/ddns/K$ZONE.*.private"
+[ -n "$WEB" ] || WEB=curl
+[ $FORCE_TCP ]   && TCP="-v" || TCP=""
+if [ $USE_IPV6 ]; then
+	RRTYPE="AAAA"
+	TYPE="inet6"
+else
+	RRTYPE="A"
+	TYPE="inet"
+fi
+FQDN="$HOST.$ZONE"
+
+
+# now it's time to do the real work:-)
+
+get_interface_ip() {
+	# hash ip 2>/dev/null && IP=ip || IP=/sbin/ip
+	command -v ip 2>/dev/null && IP=ip || IP=/sbin/ip
+	$IP -family $TYPE addr show $IF | grep $TYPE | sed "s/.*$TYPE \([0-9.]*\).*/\1/"
+}
+
+get_external_ip() {
+	case $WEB in
+		curl)
+			[ -z "$OUT_IF" ] || OUT_PARAM="--interface $IF"
+			curl --noproxy '*' -s $OUT_PARAM "$IP_LOOKUP_URL"
+			;;
+		wget)
+			[ -z "$OUT_IF" ] || OUT_PARAM="--bind-address `get_interface_ip`"
+			wget --no-proxy $OUT_PARAM -q -O - "$IP_LOOKUP_URL"
+			;;
+		links)
+			no_proxy='*' links -source "$IP_LOOKUP_URL"
+			;;
+		fetch)
+			fetch -q -o - "$IP_LOOKUP_URL"
+			;;
+		*)
+			echo "Unknown web command!" 1>&2
+			exit 1
+			;;
+	esac
+}
+
+update_dns() 
+{
+nsupdate $TCP -k $KEY <<EOF
+server $SERVER
+zone $ZONE
+update del $FQDN $RRTYPE
+update add $FQDN $TTL $RRTYPE $NEW_IP
+send
+EOF
+}
+
+DNS_IP="`dig @$SERVER $FQDN +short`"
+$EXTERNAL && NEW_IP="`get_external_ip`" || NEW_IP="`get_interface_ip`"
+
+RC=0
+if [ "$DNS_IP" != "$NEW_IP" ]; then
+	command -v chcon >/dev/null 2>&1 && chcon -t dnssec_t $KEY >/dev/null 2>&1 ||:
+	[ "$1" != "-v" ] || echo "update on $SERVER zone: $ZONE host: $FQDN from: $DNS_IP to: $NEW_IP with ttl: $TTL"
+	update_dns
+	RC=$?
+	if [ $RC != 0 ]; then
+		echo "Updating $FQDN failed (RC=$RC)."
+	else
+		echo "Updated $FQDN from $DNS_IP to $NEW_IP."
+	fi
+fi
+
+exit $RC
