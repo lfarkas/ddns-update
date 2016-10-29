@@ -1,3 +1,18 @@
+USAGE
+
+1. Put your zone's key file into /etc/ddns-update/
+2. Edit your configuration file in /etc/ddns-update/ddns-update.conf if 
+   you would like to change the default behaviour.
+3. Enable the service with:
+   systemctl enable ddns-update
+   or
+   chkconfig --add ddns-update
+4. Start the service
+   systemctl start ddns-update
+   or
+   service ddns-update start
+
+
 USING DDNS-UPDATE WITH cron
     
 If you have not configured ddns-update to use daemon-mode, you'll need to
