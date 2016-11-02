@@ -1,8 +1,8 @@
-USAGE
+GETTING STARTED
 
 1. Put your zone's key file into /etc/ddns-update/
-2. Edit your configuration file in /etc/ddns-update/ddns-update.conf if 
-   you would like to change the default behaviour.
+2. If you would like to change the default behaviour edit your configuration 
+   file in /etc/ddns-update/ddns-update.conf
 3. Enable the service with:
    systemctl enable ddns-update
    or
@@ -11,6 +11,36 @@ USAGE
    systemctl start ddns-update
    or
    service ddns-update start
+
+RUNNING MODE OF DDNS-UPDATE
+
+There are many working mode for different requirements.
+
+1. Oneshot where you just would like to update once the dns. Simple run:
+   /usr/bin/ddns-update
+
+2. In daemon mode where you run it as a system service with systemd or 
+   initscript like in the above "getting started" section.
+
+3. From cron where you can run it in a regular inteval eg every 5 minutes.
+   See in sample/ddns-update.cron
+
+4. From dhclient or dhcpcd when an interface bring up.
+   See in sample/dhclient-exit-hooks or sample/dhcpcd-eth0.exe
+
+
+WORKING MODE of DDNS-UPDATE
+
+You can confiure to detect the external interface of your network and register
+it's IP address into the dns. Or detect any system interface's IP address and
+register it into the dns. For external IP address discovery different command 
+can be used for as an URL grabber. Different site can be used as IP discovery 
+service. All other parameters like host, domain and name server name and TTL
+values can be configured.
+All of these configuration (with a few others) can be found in the main 
+configuration file /etc/ddns-update/ddns-update.conf
+
+It's designed to use with NetworkManager although can be used without it.
 
 
 USING DDNS-UPDATE WITH cron
@@ -21,8 +51,8 @@ not become stale.
     
     ## configure cron to force an update twice a month
     cp sample/ddns-update.cron /etc/cron.d/ddns-update
+
     
--------------------------------------------------------------------------------
 USING DDNS-UPDATE WITH dhcpcd-1.3.17
     
 If you are using dhcpcd-1.3.17 or thereabouts, you can easily update
@@ -38,7 +68,7 @@ for updating DNS entries.
 Alternatively, you may just configure ddns-update to operate as a daemon
 and monitor your ethernet interface.
 
--------------------------------------------------------------------------------
+
 USING DDNS-UPDATE WITH dhclient
 
 If you are using the ISC DHCP client (dhclient), you can update
@@ -51,5 +81,3 @@ ie.:
 Alternatively, you may just configure ddns-update to operate as a daemon
 and monitor your ethernet interface.
     
--------------------------------------------------------------------------------
-

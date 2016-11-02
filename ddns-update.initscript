@@ -33,7 +33,6 @@ start() {
 
 	echo -n $"Starting $prog: "
 	[ -f $cache ] || touch $cache
-	chown ddns-update:ddns-update $cache && chmod 600 $cache || exit $?
 	daemon --user=ddns-update --pidfile=$pid $exec
 	RETVAL=$?
 	echo

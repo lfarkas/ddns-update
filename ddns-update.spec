@@ -1,8 +1,3 @@
-%global cachedir %{_localstatedir}/cache/ddns-update
-%global rundir   %{_localstatedir}/run/ddns-update
-# This macro only defined by default around Fedora 18 time
-%{!?_tmpfilesdir:%global _tmpfilesdir %{_prefix}/lib/tmpfiles.d}
-
 Summary:           Client to update dynamic DNS host entries
 Name:              ddns-update
 Version:           0.1
@@ -33,7 +28,8 @@ Features include: Operating as a daemon, manual and automatic updates, static
 and dynamic updates, optimized updates and sending update status to syslog or logfile.
 
 %prep
-%setup -q
+%setup -q -c %{name}
+rm -rf sample/initscript/
 
 
 %build
@@ -51,13 +47,12 @@ install -D -p -m 644 tmpfiles-ddns-update.conf \
 	$RPM_BUILD_ROOT%{_tmpfilesdir}/%{name}.conf
 install -D -p -m 755 ddns-update.NetworkManager.systemd \
 	$RPM_BUILD_ROOT%{_sysconfdir}/NetworkManager/dispatcher.d/50-%{name}
-mkdir -p $RPM_BUILD_ROOT%{rundir}
 %else
 install -D -p -m 755 %{name}.initscript $RPM_BUILD_ROOT%{_sysconfdir}/rc.d/init.d/%{name}
 install -D -p -m 755 ddns-update.NetworkManager.sysv \
 	$RPM_BUILD_ROOT%{_sysconfdir}/NetworkManager/dispatcher.d/50-%{name}
-mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/{run}/%{name}
 %endif
+mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/run/%{name}
 
 
 %clean
@@ -80,7 +75,7 @@ if [ $1 -eq 1 ]; then
 fi
 %endif
 %else
-/sbin/chkconfig --add %{name}
+  /sbin/chkconfig --add %{name}
 %endif
 
 %preun
@@ -124,24 +119,27 @@ fi
 
 %files
 %defattr(-,root,root,-)
+%if 0%{?fedora} > 14 || 0%{?rhel} > 6
 %license LICENSE
+%else
+%doc LICENSE
+%endif
 %doc README* sample/*
 
 %if 0%{?fedora} > 14 || 0%{?rhel} > 6
 %{_unitdir}/%{name}.service
 %{_tmpfilesdir}/%{name}.conf
-%ghost %attr(0755,%{name},%{name}) %dir %{_localstatedir}/run/%{name}/
 %else
 %{_sysconfdir}/rc.d/init.d/%{name}
-%attr(0755,%{name},%{name}) %dir %{_localstatedir}/run/%{name}/
 %endif
 %if 0%{?fedora}%{?rhel} > 4
 %{_sysconfdir}/NetworkManager/dispatcher.d/50-%{name}
 %endif
-%attr(600,%{name},%{name}) %config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
-%{_bindir}/%{name}
 
-%ghost %attr(0755,%{name},%{name}) %dir %{rundir}
+%attr(644,%{name},%{name}) %config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
+%{_bindir}/%{name}
+%attr(0755,%{name},%{name}) %dir %{_localstatedir}/run/%{name}/
+%ghost %attr(0755,%{name},%{name}) %dir %{_localstatedir}/log/%{name}.log
 
 
 %changelog
