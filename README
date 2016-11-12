@@ -1,26 +1,40 @@
 GETTING STARTED
 
-1. Put your zone's key file into /etc/ddns-update/
-2. If you would like to change the default behaviour edit your configuration 
+The easiest way to install it as a package or run as a Docker container.
+
+yum install ddns-update
+or
+docker run --name ddns-update -d lfarkas/ddns-update
+
+
+MANUAL INSTALLATION
+
+1. Copy ddns-update into /usr/bin/ddns-update
+2. Link it NetworkManager's dispatcher.d ie:
+   ln -snf /usr/bin/ddns-update /etc/NetworkManager/dispatcher.d/50-ddns-update
+3. Put your zone's key file into /etc/ddns-update/
+4. Copy ddns-update.conf into /etc/ddns-update/
+5. If you would like to change the default behaviour edit your configuration 
    file in /etc/ddns-update/ddns-update.conf
-3. Enable the service with:
-   systemctl enable ddns-update
-   or
-   chkconfig --add ddns-update
-4. Start the service
-   systemctl start ddns-update
-   or
-   service ddns-update start
+
+That's all!
+
+6. If you don't use NetworkManager copy sample/ddns-update.cron into /etc/cron.d/
+
 
 RUNNING MODE OF DDNS-UPDATE
 
 There are many working mode for different requirements.
+It's designed to use with NetworkManager although can be used without it.
 
-1. Oneshot where you just would like to update once the dns. Simple run:
-   /usr/bin/ddns-update
+1. Oneshot where you just would like to update once the DNS. Simple run:
+   ddns-update (/usr/bin/ddns-update)
 
-2. In daemon mode where you run it as a system service with systemd or 
-   initscript like in the above "getting started" section.
+2. You don't need to run it as a serice on any modern Linux OS which run 
+   NetworkManager. Since in this case if NetworkManager detect or trigger
+   any changes it can re-run the tool so immediately update the DNS.
+
+-------------- If you don't use NetworkManager ------------------
 
 3. From cron where you can run it in a regular inteval eg every 5 minutes.
    See in sample/ddns-update.cron
@@ -28,25 +42,42 @@ There are many working mode for different requirements.
 4. From dhclient or dhcpcd when an interface bring up.
    See in sample/dhclient-exit-hooks or sample/dhcpcd-eth0.exe
 
+5. And as the worse case you can run in daemon mode where you run it as a 
+   system service with systemd or initscript (from the sample directory).
+   - Enable the service with:
+     systemctl enable ddns-update
+     or
+     chkconfig --add ddns-update
+   - Start the service
+     systemctl start ddns-update
+     or
+     service ddns-update start
+
 
 WORKING MODE of DDNS-UPDATE
 
-You can confiure to detect the external interface of your network and register
-it's IP address into the dns. Or detect any system interface's IP address and
-register it into the dns. For external IP address discovery different command 
-can be used for as an URL grabber. Different site can be used as IP discovery 
-service. All other parameters like host, domain and name server name and TTL
-values can be configured.
-All of these configuration (with a few others) can be found in the main 
-configuration file /etc/ddns-update/ddns-update.conf
+You can confiure to detect the external address of your machine (ie. the IP 
+address you see from the outdside) or detect any interface's IP address of the 
+OS and register it into the DNS.
 
-It's designed to use with NetworkManager although can be used without it.
+For external IP address discovery different command can be used as the URL 
+grabber. Different site can be used as IP discovery service. 
+
+All other parameters like host, domain, name server name and TTL values can be 
+configured. All of these configuration (with a few others) can be found in the 
+main configuration file /etc/ddns-update/ddns-update.conf
+
+Always try to run with minimal resource usage ie:
+- using minimal network comminucation
+- using basic shell commands
+- only query required addresses
+- only update DNS when changes detected.
 
 
 USING DDNS-UPDATE WITH cron
     
 If you have not configured ddns-update to use daemon-mode, you'll need to
-configure cron to force an update once a month so that the dns entry will
+configure cron to force an update once a month so that the DNS entry will
 not become stale.
     
     ## configure cron to force an update twice a month

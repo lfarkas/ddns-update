@@ -21,7 +21,7 @@
 # Source function library.
 . /etc/rc.d/init.d/functions
 
-exec=/usr/bin/ddns-update
+exec=/usr/bin/ddns-dbus-daemon
 prog=`basename $exec`
 lockfile=/var/lock/subsys/$prog
 pid=/var/run/ddns-update/ddns-update.pid
@@ -29,10 +29,10 @@ RETVAL=0
 
 start() {
 	# Check that networking is up.
-	[ ! -f /var/lock/subsys/network -a ! -f /var/lock/subsys/NetworkManager ] && exit 0
+	#[ ! -f /var/lock/subsys/network -a ! -f /var/lock/subsys/NetworkManager ] && exit 0
+	[ ! -f /var/lock/subsys/network ] && exit 0
 
 	echo -n $"Starting $prog: "
-	[ -f $cache ] || touch $cache
 	daemon --user=ddns-update --pidfile=$pid $exec
 	RETVAL=$?
 	echo

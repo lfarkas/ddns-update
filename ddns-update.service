@@ -6,7 +6,7 @@ After=syslog.target network.target nss-lookup.target
 User=ddns-update
 Group=ddns-update
 PIDFile=/var/run/ddns-update/ddns-update.pid
-ExecStart=/usr/bin/ddns-update --daemon
+ExecStart=/usr/bin/ddns-dbus-daemon
 
 [Install]
 WantedBy=multi-user.target
