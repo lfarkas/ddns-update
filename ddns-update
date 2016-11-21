@@ -56,7 +56,7 @@ set_defaults() {
 		RRTYPE="A"
 		TYPE="inet"
 	fi
-	[ -n "$IP_LOOKUP_URL" ] || IP_LOOKUP_URL="https://myexternalip.com/raw"
+	[ -n "$IP_LOOKUP_URL" ] || IP_LOOKUP_URL="http://myexternalip.com/raw"
 	[ -n "$ALLOW_PRIVATE" ] || ALLOW_PRIVATE=false
 	[ -n "$USE_LOGGER" ]	|| USE_LOGGER=true
 	[ -z "$LOGFILE" ]	|| LOGGER_OPT="-f $LOGFILE"
@@ -76,11 +76,14 @@ web_query() {
 	case $CMD in
 		curl)
 			[ -z "$OUT_IF" ] || OUT_PARAM="--interface $IF"
-			curl --noproxy '*' $OUT_PARAM -s "$@"
+			#curl --noproxy '*' $OUT_PARAM -s "$@"
+			curl $OUT_PARAM -s "$@"
 			;;
 		wget)
 			[ -z "$OUT_IF" ] || OUT_PARAM="--bind-address `get_interface_ip`"
-			wget --no-proxy $OUT_PARAM -q -O - "$@"
+			#wget --no-proxy $OUT_PARAM -q -O - "$@"
+			# on busybox "--proxy off"
+			wget $OUT_PARAM -q -O - "$@"
 			;;
 		links)
 			no_proxy='*' links -source "$@"
