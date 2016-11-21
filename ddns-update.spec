@@ -1,6 +1,6 @@
 Summary:           Client to update dynamic DNS host entries
 Name:              ddns-update
-Version:           0.9
+Version:           1.0
 Release:           1%{?dist}
 License:           GPLv2+
 Group:             System Environment/Daemons
@@ -10,16 +10,17 @@ Source0:           https://github.com/lfarkas/%{name}/releases/%{name}-%{version
 BuildArch:         noarch
 
 Requires(pre):     shadow-utils
-#%if 0%{?fedora} > 14 || 0%{?rhel} > 6
-#BuildRequires:     systemd
-#Requires(post):    systemd
-#Requires(preun):   systemd
-#Requires(postun):  systemd
-#%else
-#Requires(post):    /sbin/chkconfig
-#Requires(preun):   /sbin/service, /sbin/chkconfig
-#Requires(postun):  /sbin/service
-#%endif
+Requires:          bind-utils
+%if 0%{?fedora} > 14 || 0%{?rhel} > 6
+BuildRequires:     systemd
+Requires(post):    systemd
+Requires(preun):   systemd
+Requires(postun):  systemd
+%else
+Requires(post):    /sbin/chkconfig
+Requires(preun):   /sbin/service, /sbin/chkconfig
+Requires(postun):  /sbin/service
+%endif
 BuildRoot:         %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 %description
@@ -139,5 +140,5 @@ fi
 
 
 %changelog
-* Sat Oct 29 2016 Levente Farkas <lfarkas@lfarkas.org> - 0.9-1
+* Sat Oct 29 2016 Levente Farkas <lfarkas@lfarkas.org>
 - initial release

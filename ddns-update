@@ -11,7 +11,7 @@ DAEMON=false
 while [ $# -gt 0 ]; do
 	case $1 in
 		-c)
-			CONF=$2
+			CONF="$2"
 			shift
 			;;
 		-d|--daemon)
@@ -28,7 +28,7 @@ while [ $# -gt 0 ]; do
 	shift
 done
 
-[ ! -f $CONF ] || source $CONF
+[ ! -f "$CONF" ] || source "$CONF"
 
 set_defaults() {
 	[ -n "$INTERVAL" ] || INTERVAL=300
@@ -65,7 +65,7 @@ set_defaults() {
 log() {
 	if $USE_LOGGER ; then
 		logger -t ddns-update $LOGGER_OPT "$@"
-	elif [ -f $LOGFILE ]; then
+	elif [ -f "$LOGFILE" ]; then
 		echo "$@" >> $LOGFILE
 	else
 		echo "$@"
