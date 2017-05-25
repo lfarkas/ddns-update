@@ -1,0 +1,15 @@
+#!/bin/sh
+
+export LC_ALL=C
+PATH=/usr/sbin:/sbin:$PATH
+
+. /usr/libexec/ddns-update/functions
+
+#if [ "$2" = "down" ]; then
+#fi
+
+if [ "$2" = "up" ]; then
+	if [ "$1" = "$IF" ]; then
+		discover_update
+	fi
+fi

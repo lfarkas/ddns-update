@@ -1,6 +1,6 @@
 Summary:           Client to update dynamic DNS host entries
 Name:              ddns-update
-Version:           1.0
+Version:           1.1
 Release:           1%{?dist}
 License:           GPLv2+
 Group:             System Environment/Daemons
@@ -40,6 +40,8 @@ rm -rf sample/initscript/
 %install
 install -D -p -m 755 ddns-update $RPM_BUILD_ROOT%{_bindir}/ddns-update
 install -D -p -m 755 ddns-dbus-daemon $RPM_BUILD_ROOT%{_bindir}/ddns-dbus-daemon
+install -D -p -m 755 functions $RPM_BUILD_ROOT%{_libexecdir}%{name}/functions
+install -D -p -m 755 50-%{name} $RPM_BUILD_ROOT%{_sysconfdir}/NetworkManager/dispatcher.d/50-%{name}
 install -D -p -m 600 ddns-update.conf $RPM_BUILD_ROOT%{_sysconfdir}/%{name}/ddns-update.conf
 %if 0%{?fedora} > 14 || 0%{?rhel} > 6
 install -D -p -m 644 %{name}.service $RPM_BUILD_ROOT%{_unitdir}/%{name}.service
@@ -48,8 +50,6 @@ install -D -p -m 644 tmpfiles-ddns-update.conf \
 %else
 install -D -p -m 755 %{name}.initscript $RPM_BUILD_ROOT%{_sysconfdir}/rc.d/init.d/%{name}
 %endif
-mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/NetworkManager/dispatcher.d/
-ln -snf %{_bindir}/%{name} $RPM_BUILD_ROOT%{_sysconfdir}/NetworkManager/dispatcher.d/50-%{name}
 mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/run/%{name}
 
 
@@ -135,6 +135,7 @@ fi
 
 %attr(644,%{name},%{name}) %config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
 %{_bindir}/*
+%{_libexecdir}%{name}/functions
 %attr(0755,%{name},%{name}) %dir %{_localstatedir}/run/%{name}/
 %ghost %attr(0755,%{name},%{name}) %dir %{_localstatedir}/log/%{name}.log
 

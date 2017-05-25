@@ -1,11 +1,7 @@
 #!/bin/sh
 
-set -e
+. /usr/libexec/ddns-update/functions
 
-PATH=/usr/sbin:/sbin:$PATH
-
-CONF_DIR=/etc/ddns-update
-CONF=$CONF_DIR/ddns-update.conf
 DAEMON=false
 
 while [ $# -gt 0 ]; do
@@ -28,170 +24,12 @@ while [ $# -gt 0 ]; do
 	shift
 done
 
-[ ! -f "$CONF" ] || source "$CONF"
-
-set_defaults() {
-	[ -n "$INTERVAL" ] || INTERVAL=300
-	[ -n "$EXTERNAL" ] || EXTERNAL=true
-	[ -n "$IF" ] && OUT_IF=$IF || IF=eth0
-
-	# other implementation can be
-	# HOST=$(expr `cat /proc/sys/kernel/hostname` : '\([^.][^.]*\)\..*')
-	# HOST=$(sed  's/\..*//' < /proc/sys/kernel/hostname)
-	# ZONE=$(expr `cat /proc/sys/kernel/hostname` : '[^.][^.]*\.\(.*\)')
-	# ZONE=$(sed -n 's/[^.]*\.//p' < /proc/sys/kernel/hostname)
-	[ -n "$HOST" ]   || HOST=`cut -d. -f1 < /proc/sys/kernel/hostname`
-	[ -n "$ZONE" ]   || ZONE=`cut -d. -f2- < /proc/sys/kernel/hostname`
-	FQDN="$HOST.$ZONE."
-
-	[ -n "$TTL" ]    || TTL=600
-	[ -n "$KEY" ]    || KEY="$CONF_DIR/K$ZONE.*.private"
-	[ -n "$CMD" ]    || CMD=curl
-	[ -n "$SERVER" ] || SERVER=`find_primary_dns $ZONE`
-	[ ! $FORCE_TCP ] || TCP="-v"
-	if [ $USE_IPV6 ]; then
-		RRTYPE="AAAA"
-		TYPE="inet6"
-	else
-		RRTYPE="A"
-		TYPE="inet"
-	fi
-	[ -n "$IP_LOOKUP_URL" ] || IP_LOOKUP_URL="http://myexternalip.com/raw"
-	[ -n "$ALLOW_PRIVATE" ] || ALLOW_PRIVATE=false
-	[ -n "$USE_LOGGER" ]	|| USE_LOGGER=true
-	[ -z "$LOGFILE" ]	|| LOGGER_OPT="-f $LOGFILE"
-}
-
-log() {
-	if $USE_LOGGER ; then
-		logger -t ddns-update $LOGGER_OPT "$@"
-	elif [ -f "$LOGFILE" ]; then
-		echo "$@" >> $LOGFILE
-	else
-		echo "$@"
-	fi
-}
-
-web_query() {
-	case $CMD in
-		curl)
-			[ -z "$OUT_IF" ] || OUT_PARAM="--interface $IF"
-			#curl --noproxy '*' $OUT_PARAM -s "$@"
-			curl $OUT_PARAM -s "$@"
-			;;
-		wget)
-			[ -z "$OUT_IF" ] || OUT_PARAM="--bind-address `get_interface_ip`"
-			#wget --no-proxy $OUT_PARAM -q -O - "$@"
-			# on busybox "--proxy off"
-			wget $OUT_PARAM -q -O - "$@"
-			;;
-		links)
-			no_proxy='*' links -source "$@"
-			;;
-		fetch)
-			fetch -q -o - "$@"
-			;;
-		*)
-			$CMD "$@"
-			;;
-	esac
-}
-
-# $1 = domain ie zone
-find_primary_dns() {
-	local result
-	if `command -v dig >/dev/null 2>&1` ; then
-		result=`dig +nocmd +nosearch +noall +answer +short soa $1 | cut -d' ' -f1`
-	elif `command -v nslookup >/dev/null 2>&1` ; then
-		result=`nslookup -type=soa -nosearch $1 2>/dev/null | grep origin | tr -d '[:space:]' | cut -d= -f2`
-	fi
-	if [ -z "$result" ]; then
-		result=`web_query "http://api.hackertarget.com/dnslookup/?q=$1" | grep SOA | awk '{ print $5 }'`
-	fi
-	echo $result
-}
-
-# $1 = FQDN, $2 = DNS to query
-find_dns_ip() {
-	local server
-	if `command -v dig >/dev/null 2>&1` ; then
-		[ $# -lt 2 ] || server="@$2"
-		result=`dig $server $1 +nocmd +nosearch +noall +answer +short | tail -1`
-	elif `command -v nslookup >/dev/null 2>&1` ; then
-		[ $# -lt 2 ] || server="$2"
-		result=`nslookup -nosearch $1 $server 2>/dev/null | grep -i Address | sed "s/Address.*: //g" | tail -1`
-	fi
-	if [ -z "$result" ]; then
-		result=`web_query "http://api.hackertarget.com/dnslookup/?q=$1" | awk '{ print $5 }' | tail -1`
-	fi
-	echo $result
-}
-
-get_interface_ip() {
-	#command -v ip >/dev/null 2>&1 && IP=ip || IP=/sbin/ip
-	ip -family $TYPE addr show $IF | grep $TYPE | sed "s/.*$TYPE \([0-9.]*\).*/\1/"
-}
-
-get_external_ip() {
-	web_query "$IP_LOOKUP_URL"
-}
-
-discover_ip() {
-	DNS_IP="`find_dns_ip $FQDN $SERVER`"
-	$EXTERNAL && NEW_IP="`get_external_ip`" || NEW_IP="`get_interface_ip`"
-}
-
-send_update()
-{
-	if [ -f $KEY ]; then
-		command -v chcon >/dev/null 2>&1 && chcon -t dnssec_t $KEY >/dev/null 2>&1 ||:
-		log "Send update to $SERVER host: $FQDN from: $DNS_IP to: $NEW_IP ttl: $TTL"
-		nsupdate $TCP -k $KEY <<EOF
-server $SERVER
-zone $ZONE
-update del $FQDN $RRTYPE
-update add $FQDN $TTL $RRTYPE $NEW_IP
-send
-EOF
-	else
-		log "Error: Key file ($KEY) missing for dns update!"
-		exit 1
-	fi
-}
-
-ddns_update() {
-	if [ "$DNS_IP" != "$NEW_IP" ]; then
-		if ! $ALLOW_PRIVATE ; then
-			case "$NEW_IP" in
-				10.* | 172.1[6-9].* | 172.2[0-9].* | 172.3[0-1].* | 192.168.*)
-					log "Error: Private IP address update not allowed ($NEW_IP)."
-					exit 1
-					;;
-				*)
-        				;;
-			esac
-		fi
-
-		send_update
-		RC=$?
-		if [ $RC != 0 ]; then
-			log "Error: Updating $FQDN failed (RC=$RC)."
-		else
-			log "DNS Update was succesful."
-		fi
-	fi
-	return $RC
-}
-
-set_defaults
 if $DAEMON ; then
 	echo $$ > /var/run/ddns-update/ddns-update.pid
 	while : ; do
-		discover_ip
-		ddns_update
+		discover_update
 		sleep $INTERVAL
 	done
 else
-	discover_ip
-	ddns_update
+	discover_update
 fi
