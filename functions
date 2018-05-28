@@ -132,7 +132,7 @@ send_update()
 		nsupdate $TCP -k $KEY <<-EOF
 			server $SERVER
 			zone $ZONE
-			update del $FQDN $RRTYPE
+			update delete $FQDN $RRTYPE
 			update add $FQDN $TTL $RRTYPE $NEW_IP
 			send
 		EOF

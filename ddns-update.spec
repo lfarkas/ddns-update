@@ -40,7 +40,7 @@ rm -rf sample/initscript/
 %install
 install -D -p -m 755 ddns-update $RPM_BUILD_ROOT%{_bindir}/ddns-update
 install -D -p -m 755 ddns-dbus-daemon $RPM_BUILD_ROOT%{_bindir}/ddns-dbus-daemon
-install -D -p -m 755 functions $RPM_BUILD_ROOT%{_libexecdir}%{name}/functions
+install -D -p -m 755 functions $RPM_BUILD_ROOT%{_libexecdir}/%{name}/functions
 install -D -p -m 755 50-%{name} $RPM_BUILD_ROOT%{_sysconfdir}/NetworkManager/dispatcher.d/50-%{name}
 install -D -p -m 600 ddns-update.conf $RPM_BUILD_ROOT%{_sysconfdir}/%{name}/ddns-update.conf
 %if 0%{?fedora} > 14 || 0%{?rhel} > 6
@@ -135,7 +135,7 @@ fi
 
 %attr(644,%{name},%{name}) %config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
 %{_bindir}/*
-%{_libexecdir}%{name}/functions
+%{_libexecdir}/%{name}/functions
 %attr(0755,%{name},%{name}) %dir %{_localstatedir}/run/%{name}/
 %ghost %attr(0755,%{name},%{name}) %dir %{_localstatedir}/log/%{name}.log
 
