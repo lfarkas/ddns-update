@@ -24,7 +24,7 @@
 exec=/usr/bin/ddns-dbus-daemon
 prog=`basename $exec`
 lockfile=/var/lock/subsys/$prog
-pid=/var/run/ddns-update/ddns-update.pid
+pid=/run/ddns-update/ddns-update.pid
 RETVAL=0
 
 start() {

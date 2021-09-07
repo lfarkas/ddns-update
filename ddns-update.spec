@@ -1,6 +1,6 @@
 Summary:           Client to update dynamic DNS host entries
 Name:              ddns-update
-Version:           1.1
+Version:           1.2
 Release:           1%{?dist}
 License:           GPLv2+
 Group:             System Environment/Daemons
@@ -50,7 +50,7 @@ install -D -p -m 644 tmpfiles-ddns-update.conf \
 %else
 install -D -p -m 755 %{name}.initscript $RPM_BUILD_ROOT%{_sysconfdir}/rc.d/init.d/%{name}
 %endif
-mkdir -p $RPM_BUILD_ROOT%{_localstatedir}/run/%{name}
+mkdir -p $RPM_BUILD_ROOT%{_rundir}/%{name}
 
 
 %clean
@@ -136,7 +136,7 @@ fi
 %attr(644,%{name},%{name}) %config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
 %{_bindir}/*
 %{_libexecdir}/%{name}/functions
-%attr(0755,%{name},%{name}) %dir %{_localstatedir}/run/%{name}/
+%attr(0755,%{name},%{name}) %dir %{_rundir}/%{name}/
 %ghost %attr(0755,%{name},%{name}) %dir %{_localstatedir}/log/%{name}.log
 
 
