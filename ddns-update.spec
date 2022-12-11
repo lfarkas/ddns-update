@@ -29,13 +29,9 @@ Features include: Operating as a daemon, manual and automatic updates, static
 and dynamic updates, optimized updates and sending update status to syslog or logfile.
 
 %prep
-%setup -q -c %{name}
-rm -rf sample/initscript/
-
+%setup -q
 
 %build
-#nothing to do
-
 
 %install
 install -D -p -m 755 ddns-update $RPM_BUILD_ROOT%{_bindir}/ddns-update
