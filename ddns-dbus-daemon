@@ -4,7 +4,8 @@
 # org.freedesktop.NetworkManager.IP4Config
 # org.freedesktop.DBus.Properties
 
-dbus-monitor --system --profile "type='signal',path_namespace='/org/freedesktop/NetworkManager/IP4Config',interface='org.freedesktop.DBus.Properties',member='PropertiesChanged'" |
-while read -r EVENT; do
-	ddns-update
-done
+dbus-monitor --system --profile \
+	"type='signal',path_namespace='/org/freedesktop/NetworkManager/IP4Config',interface='org.freedesktop.DBus.Properties',member='PropertiesChanged'" 2>/dev/null |
+		while read -r EVENT; do
+			ddns-update
+		done
