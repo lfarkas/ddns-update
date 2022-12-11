@@ -5,7 +5,7 @@ Release:           1%{?dist}
 License:           GPLv2+
 Group:             System Environment/Daemons
 URL:               https://github.com/lfarkas/%{name}
-Source0:           https://github.com/lfarkas/%{name}/releases/%{name}-%{version}.tar.bz2
+Source0:           https://github.com/lfarkas/%{name}/releases/%{name}-%{version}.tar.gz
 
 BuildArch:         noarch
 
