@@ -121,7 +121,9 @@ get_external_ip() {
 
 discover_ip() {
 	DNS_IP="`find_dns_ip $FQDN $SERVER`"
-	$EXTERNAL && NEW_IP="`get_external_ip`" || NEW_IP="`get_interface_ip`"
+	if [ -z "$NEW_IP" ]; then
+		$EXTERNAL && NEW_IP="`get_external_ip`" || NEW_IP="`get_interface_ip`"
+	fi
 }
 
 send_update()

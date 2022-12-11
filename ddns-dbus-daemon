@@ -1,29 +1,10 @@
 #!/bin/bash
 
-#
-# This script listens for any kinf of ip address changes.
-#
-
-# https://dbus.freedesktop.org/doc/api/html/group__DBusBus.html
-# 
-# Possible keys you can match on are type, sender, interface, member, path, 
-# destination and numbered keys to match message args (keys are 'arg0', 'arg1', 
-# etc.). Omitting a key from the rule indicates a wildcard match. For instance 
-# omitting the member from a match rule but adding a sender would let all 
-# messages from that sender through regardless of the member.
-# If you match message args ('arg0', 'arg1', and so forth) only string arguments will match. That is, arg0='5' means match the string "5" not the integer 5.
-# 
-# https://developer.gnome.org/NetworkManager/stable/gdbus-org.freedesktop.NetworkManager.IP4Config.html
-
 # org.freedesktop.NetworkManager.DHCP4Config
 # org.freedesktop.NetworkManager.IP4Config
 # org.freedesktop.DBus.Properties
-# "type='signal',sender='org.freedesktop.DBus', interface='org.freedesktop.DBus',member='Foo', path='/bar/foo',destination=':452345.34'"
 
-dbus-monitor --system --profile "type='signal',interface='org.freedesktop.NetworkManager.IP4Config'" | 
+dbus-monitor --system --profile "type='signal',path_namespace='/org/freedesktop/NetworkManager/IP4Config',interface='org.freedesktop.DBus.Properties',member='PropertiesChanged'" |
 while read -r EVENT; do
 	ddns-update
-	#change this condition to the event you're interested in
-	#if echo "$EVENT" | grep -q BOUND6; then
-	#fi
 done

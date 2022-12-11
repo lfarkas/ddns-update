@@ -1,6 +1,6 @@
 Summary:           Client to update dynamic DNS host entries
 Name:              ddns-update
-Version:           1.2
+Version:           1.3
 Release:           1%{?dist}
 License:           GPLv2+
 Group:             System Environment/Daemons
@@ -45,8 +45,7 @@ install -D -p -m 755 50-%{name} $RPM_BUILD_ROOT%{_sysconfdir}/NetworkManager/dis
 install -D -p -m 600 ddns-update.conf $RPM_BUILD_ROOT%{_sysconfdir}/%{name}/ddns-update.conf
 %if 0%{?fedora} > 14 || 0%{?rhel} > 6
 install -D -p -m 644 %{name}.service $RPM_BUILD_ROOT%{_unitdir}/%{name}.service
-install -D -p -m 644 tmpfiles-ddns-update.conf \
-	$RPM_BUILD_ROOT%{_tmpfilesdir}/%{name}.conf
+install -D -p -m 644 tmpfiles-ddns-update.conf $RPM_BUILD_ROOT%{_tmpfilesdir}/%{name}.conf
 %else
 install -D -p -m 755 %{name}.initscript $RPM_BUILD_ROOT%{_sysconfdir}/rc.d/init.d/%{name}
 %endif
