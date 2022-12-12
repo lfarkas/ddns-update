@@ -1,6 +1,6 @@
 Summary:           Client to update dynamic DNS host entries
 Name:              ddns-update
-Version:           1.4
+Version:           1.5
 Release:           1%{?dist}
 License:           GPLv2+
 Group:             System Environment/Daemons
@@ -21,7 +21,10 @@ Requires(post):    /sbin/chkconfig
 Requires(preun):   /sbin/service, /sbin/chkconfig
 Requires(postun):  /sbin/service
 %endif
-BuildRoot:         %{_tmppath}/%{name}-%{ver/lfarkas dynamic DNS entries with nsupdate
+BuildRoot:         %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+
+%description
+ddns-update is a shell client used to update dynamic DNS entries with nsupdate
 Features include: Operating as a daemon, manual and automatic updates, static 
 and dynamic updates, optimized updates and sending update status to syslog or logfile.
 
