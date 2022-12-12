@@ -112,7 +112,7 @@ find_dns_ip() {
 
 get_interface_ip() {
 	#command -v ip >/dev/null 2>&1 && IP=ip || IP=/sbin/ip
-	ip -family $TYPE addr show $IF | grep $TYPE | sed "s/.*$TYPE \([0-9.]*\).*/\1/"
+	ip -family $TYPE addr show $IF | grep $TYPE | sed "s/.*$TYPE \([0-9.]*\).*/\1/" | head -1
 }
 
 get_external_ip() {

@@ -128,6 +128,7 @@ fi
 %{_sysconfdir}/NetworkManager/dispatcher.d/50-%{name}
 %endif
 
+%attr(700,%{name},%{name}) %dir %{_sysconfdir}/%{name}
 %attr(644,%{name},%{name}) %config(noreplace) %{_sysconfdir}/%{name}/%{name}.conf
 %{_bindir}/*
 %{_libexecdir}/%{name}/functions

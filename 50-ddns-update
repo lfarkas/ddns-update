@@ -1,33 +1,21 @@
 #!/bin/sh -e
-# Script to dispatch NetworkManager events
-#
-# Runs ifupdown scripts when NetworkManager fiddles with interfaces.
-# See NetworkManager(8) for further documentation of the dispatcher events.
-
-if [ -z "$1" ]; then
-    echo "$0: called with no interface" 1>&2
-    exit 1;
-fi
 
 export LC_ALL=C
+
+[ $# -eq 2 ] || exit 0
+
 PATH=/usr/sbin:/sbin:$PATH
+
 . /usr/libexec/ddns-update/functions
 
 # Run the right scripts
 case "$2" in
-    up|vpn-up|dhcp4-change|dhcp6-change)
-    logger -s "ddns NetworkManager up"
-	if [ "$1" == "$IF" ]; then
-		NEW_IP=$IP4_NUM_ADDRESSES
-		discover_update
-	fi
-    ;;
-    down|vpn-down)
-    ;;
-    *pre*|hostname|connectivity-change)
-    ;;
-    *)
-    echo "$0: called with unknown action \`$2'" 1>&2
-    exit 1
+    up|vpn-up|dhcp4-change)
+    	if [ "$1" == "$IF" ]; then
+            logger -s "ddns-update NetworkManager-dispatcher up $IF"
+            discover_update
+	    fi
     ;;
 esac
+
+exit 0
